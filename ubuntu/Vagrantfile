@@ -68,38 +68,36 @@ Vagrant.configure("2") do |config|
     apt-get install -y git
   SHELL
 
-  config.vm.define "rancher21" do |rancher21|
-    rancher21.vm.hostname = 'rancher21'
-    rancher21.vm.box= "ubuntu/xenial64"
-    rancher21.vm.box_url = "ubuntu/xenial64"
-    config.ssh.password = 'ubuntu'
-    config.ssh.password = 'vagrant'
+  config.vm.define "rancher11" do |rancher11|
+    rancher11.vm.hostname = 'rancher11'
+    rancher11.vm.box= "ubuntu/xenial64"
+    rancher11.vm.box_url = "ubuntu/xenial64"
+    config.ssh.username = 'ubuntu'
 
-    rancher21.vm.network :private_network, ip: "172.22.101.10",
+    rancher11.vm.network :private_network, ip: "172.22.101.11",
       nic_type: "82545EM"
 
-    rancher21.vm.provider :virtualbox do |v|
+    rancher11.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       v.customize ["modifyvm", :id, "--memory", 2048]
-      v.customize ["modifyvm", :id, "--name", "rancher21"]
+      v.customize ["modifyvm", :id, "--name", "rancher11"]
       v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
   end
 
-  config.vm.define "rancher22" do |rancher22|
-    rancher22.vm.hostname = 'rancher22'
-    rancher22.vm.box= "ubuntu/xenial64"
-    rancher22.vm.box_url = "ubuntu/xenial64"
-    config.ssh.password = 'ubuntu'
-    config.ssh.password = 'vagrant'
+  config.vm.define "rancher12" do |rancher12|
+    rancher12.vm.hostname = 'rancher12'
+    rancher12.vm.box= "ubuntu/xenial64"
+    rancher12.vm.box_url = "ubuntu/xenial64"
+    config.ssh.username = 'ubuntu'
 
-    rancher22.vm.network :private_network, ip: "172.22.101.11",
+    rancher12.vm.network :private_network, ip: "172.22.101.12",
       nic_type: "82545EM"
 
-    rancher22.vm.provider :virtualbox do |v|
+    rancher12.vm.provider :virtualbox do |v|
       v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       v.customize ["modifyvm", :id, "--memory", 2048]
-      v.customize ["modifyvm", :id, "--name", "rancher22"]
+      v.customize ["modifyvm", :id, "--name", "rancher12"]
       v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
   end
