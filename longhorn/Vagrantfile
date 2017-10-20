@@ -1,0 +1,64 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box_check_update = false
+
+  config.vm.provision "shell", path:"install_docker.sh"
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get install -y git
+  SHELL
+
+  config.vm.define "lh21" do |lh21|
+    lh21.vm.hostname = 'lh21'
+    lh21.vm.box= "ubuntu/xenial64"
+    lh21.vm.box_url = "ubuntu/xenial64"
+    config.ssh.username = 'ubuntu'
+
+    lh21.vm.network :private_network, ip: "172.22.102.21",
+      nic_type: "82545EM"
+
+    lh21.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 1048]
+      v.customize ["modifyvm", :id, "--name", "lh21"]
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+  end
+
+  config.vm.define "lh22" do |lh22|
+    lh22.vm.hostname = 'lh22'
+    lh22.vm.box= "ubuntu/xenial64"
+    lh22.vm.box_url = "ubuntu/xenial64"
+    config.ssh.username = 'ubuntu'
+
+    lh22.vm.network :private_network, ip: "172.22.102.22",
+      nic_type: "82545EM"
+
+    lh22.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 1048]
+      v.customize ["modifyvm", :id, "--name", "lh22"]
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+  end
+
+  config.vm.define "lh23" do |lh23|
+    lh23.vm.hostname = 'lh23'
+    lh23.vm.box= "ubuntu/xenial64"
+    lh23.vm.box_url = "ubuntu/xenial64"
+    config.ssh.username = 'ubuntu'
+
+    lh23.vm.network :private_network, ip: "172.22.102.23",
+      nic_type: "82545EM"
+
+    lh23.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 1048]
+      v.customize ["modifyvm", :id, "--name", "lh23"]
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+  end
+
+
+end
