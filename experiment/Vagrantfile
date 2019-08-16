@@ -1,0 +1,67 @@
+IMAGE_NAME = "ubuntu/bionic64"
+N = 1
+
+Vagrant.configure("2") do |config|
+    config.ssh.insert_key = false
+
+    config.vm.provider "virtualbox" do |v|
+        v.memory = 1024
+        v.cpus = 2
+    end
+
+    # install docker
+    config.vm.provision "shell", inline: <<-SHELL
+      apt-get install -y \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        gnupg-agent \
+        software-properties-common
+
+      curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+      add-apt-repository \
+        "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) \
+        stable"
+
+      apt-get update
+
+      apt-get install -y docker-ce docker-ce-cli containerd.io
+
+    SHELL
+
+    # install tools
+    config.vm.provision "shell", inline: <<-SHELL
+      apt-get install -y git vim
+    SHELL
+      
+    # config.vm.define "k8s-master" do |master|
+    #     master.vm.box = IMAGE_NAME
+    #     master.vm.network "private_network", ip: "192.168.50.10"
+    #     master.vm.hostname = "exp1"
+
+    #     master.vm.provision "ansible" do |ansible|
+    #         ansible.playbook = "kubernetes-setup/master-playbook.yml"
+    #         ansible.extra_vars = {
+    #             node_ip: "192.168.50.10",
+    #         }
+    #     end
+    # end
+
+    config.vm.synced_folder "/Users/wusendong", "/hosthome"
+
+    (1..N).each do |i|
+        config.vm.define "exp-#{i}" do |node|
+            node.vm.box = IMAGE_NAME
+            node.vm.network "private_network", ip: "192.168.50.#{i + 10}"
+            node.vm.hostname = "exp-#{i}"
+            # node.vm.provision "ansible" do |ansible|
+            #     ansible.playbook = "kubernetes-setup/node-playbook.yml"
+            #     ansible.extra_vars = {
+            #         node_ip: "192.168.50.#{i + 10}",
+            #     }
+            # end
+        end
+    end
+end

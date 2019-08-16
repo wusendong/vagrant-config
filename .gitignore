@@ -1,3 +1,4 @@
 .vagrant
 data/
 *.log
+.DS_Store
