@@ -33,6 +33,7 @@
       name: "{{ packages }}"
       state: present
       update_cache: yes
+      force_apt_get: yes
     vars:
       packages:
       - docker-ce 
@@ -85,6 +86,7 @@
 
   - name: Configure node ip
     lineinfile:
+      create: yes
       path: /etc/default/kubelet
       line: KUBELET_EXTRA_ARGS=--node-ip={{ node_ip }}
 
