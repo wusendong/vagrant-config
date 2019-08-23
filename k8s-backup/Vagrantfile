@@ -1,0 +1,47 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box_check_update = false
+
+  config.vm.provision "shell", path:"install_docker.sh"
+  config.vm.provision "shell", path:"install_kubeadm.sh"
+  config.vm.provision "shell", inline: <<-SHELL
+  apt-get install -y git
+  SHELL
+
+  config.vm.define "k8s31" do |k8s31|
+    k8s31.vm.hostname = 'k8s31'
+    k8s31.vm.box= "ubuntu/xenial64"
+    k8s31.vm.box_url = "ubuntu/xenial64"
+    config.ssh.username = 'ubuntu'
+
+    k8s31.vm.network :private_network, ip: "172.22.102.31",
+      nic_type: "82545EM"
+
+    k8s31.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 1048]
+      v.customize ["modifyvm", :id, "--name", "k8s31"]
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+  end
+
+  config.vm.define "k8s32" do |k8s32|
+    k8s32.vm.hostname = 'k8s32'
+    k8s32.vm.box= "ubuntu/xenial64"
+    k8s32.vm.box_url = "ubuntu/xenial64"
+    config.ssh.username = 'ubuntu'
+
+    k8s32.vm.network :private_network, ip: "172.22.102.32",
+      nic_type: "82545EM"
+
+    k8s32.vm.provider :virtualbox do |v|
+      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      v.customize ["modifyvm", :id, "--memory", 1048]
+      v.customize ["modifyvm", :id, "--name", "k8s32"]
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+  end
+
+end

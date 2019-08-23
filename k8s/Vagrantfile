@@ -1,47 +1,48 @@
-# -*- mode: ruby -*-
-# vi: set ft=ruby :
+# frozen_string_literal: true
 
-Vagrant.configure("2") do |config|
-  config.vm.box_check_update = false
+IMAGE_NAME = 'ubuntu/bionic64'
+N = 1
+PROJECT = 'k8s'
+HOSTHOME = ENV['HOME'] || '.'
+NETWORK_PREFIX = ENV['NETWORK_PREFIX'] || '192.168.90'
+NETWORK_ID = 2
 
-  config.vm.provision "shell", path:"install_docker.sh"
-  config.vm.provision "shell", path:"install_kubeadm.sh"
-  config.vm.provision "shell", inline: <<-SHELL
-  apt-get install -y git
-  SHELL
+Vagrant.configure('2') do |config|
+  config.ssh.insert_key = false
+  config.vagrant.plugins = ['vagrant-timezone']
+  config.timezone.value = :host
+  config.vm.synced_folder HOSTHOME, '/hosthome'
+  config.vm.synced_folder '/', '/host'
+  config.vm.provider 'virtualbox' do |v|
+    v.memory = 1024
+    v.cpus = 2
+    v.customize ['modifyvm', :id, '--audio', 'none']
+    v.linked_clone = true if Gem::Version.new(Vagrant::VERSION) >= Gem::Version.new('1.8.0')
+  end
 
-  config.vm.define "k8s31" do |k8s31|
-    k8s31.vm.hostname = 'k8s31'
-    k8s31.vm.box= "ubuntu/xenial64"
-    k8s31.vm.box_url = "ubuntu/xenial64"
-    config.ssh.username = 'ubuntu'
-
-    k8s31.vm.network :private_network, ip: "172.22.102.31",
-      nic_type: "82545EM"
-
-    k8s31.vm.provider :virtualbox do |v|
-      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-      v.customize ["modifyvm", :id, "--memory", 1048]
-      v.customize ["modifyvm", :id, "--name", "k8s31"]
-      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+  config.vm.define 'k8s-master' do |master|
+    master.vm.box = IMAGE_NAME
+    master.vm.network 'private_network', ip: "#{NETWORK_PREFIX}.#{NETWORK_ID}0"
+    master.vm.hostname = 'k8s-master'
+    master.vm.provision 'ansible' do |ansible|
+      ansible.playbook = 'kubernetes-setup/master-playbook.yml'
+      ansible.extra_vars = {
+        node_ip: "#{NETWORK_PREFIX}.#{NETWORK_ID}0"
+      }
     end
   end
 
-  config.vm.define "k8s32" do |k8s32|
-    k8s32.vm.hostname = 'k8s32'
-    k8s32.vm.box= "ubuntu/xenial64"
-    k8s32.vm.box_url = "ubuntu/xenial64"
-    config.ssh.username = 'ubuntu'
-
-    k8s32.vm.network :private_network, ip: "172.22.102.32",
-      nic_type: "82545EM"
-
-    k8s32.vm.provider :virtualbox do |v|
-      v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-      v.customize ["modifyvm", :id, "--memory", 1048]
-      v.customize ["modifyvm", :id, "--name", "k8s32"]
-      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+  (1..N).each do |i|
+    config.vm.define "node-#{i}" do |node|
+      node.vm.box = IMAGE_NAME
+      node.vm.network 'private_network', ip: "#{NETWORK_PREFIX}.#{NETWORK_ID}#{i}"
+      node.vm.hostname = "node-#{i}"
+      node.vm.provision 'ansible' do |ansible|
+        ansible.playbook = 'kubernetes-setup/node-playbook.yml'
+        ansible.extra_vars = {
+          node_ip: "#{NETWORK_PREFIX}.#{NETWORK_ID}#{i}"
+        }
+      end
     end
   end
-
 end
