@@ -1,8 +1,10 @@
-IMAGE_NAME = "ubuntu/bionic64"
+# frozen_string_literal: true
+
+IMAGE_NAME = 'ubuntu/bionic64'
 N = 1
 
 # --- Check for missing plugins
-required_plugins = %w( vagrant-alpine vagrant-timezone )
+required_plugins = %w[vagrant-alpine vagrant-timezone]
 plugin_installed = false
 required_plugins.each do |plugin|
   unless Vagrant.has_plugin?(plugin)
@@ -11,21 +13,20 @@ required_plugins.each do |plugin|
   end
 end
 # --- If new plugins installed, restart Vagrant process
-if plugin_installed === true
-  exec "vagrant #{ARGV.join' '}"
-end
+exec "vagrant #{ARGV.join ' '}" if plugin_installed === true
 
-Vagrant.configure("2") do |config|
-    config.ssh.insert_key = false
+Vagrant.configure('2') do |config|
+  config.ssh.insert_key = false
 
-    config.vm.provider "virtualbox" do |v|
-        v.memory = 1024
-        v.cpus = 2
-        v.customize ["modifyvm", :id, "--audio", "none"]
-    end
+  config.vm.provider 'virtualbox' do |v|
+    v.memory = 1024
+    v.cpus = 2
+    v.customize ['modifyvm', :id, '--audio', 'none']
+    v.linked_clone = true if Gem::Version.new(Vagrant::VERSION) >= Gem::Version.new('1.8.0')
+  end
 
-    # install docker
-    config.vm.provision "shell", inline: <<-SHELL
+  # install docker
+  config.vm.provision 'shell', inline: <<-SHELL
       apt-get install -y \
         apt-transport-https \
         ca-certificates \
@@ -45,42 +46,41 @@ Vagrant.configure("2") do |config|
       apt-get install -y docker-ce docker-ce-cli containerd.io
 
       usermod -aG docker vagrant
-    SHELL
+  SHELL
 
-    # install tools
-    config.vm.provision "shell", inline: <<-SHELL
+  # install tools
+  config.vm.provision 'shell', inline: <<-SHELL
       apt-get install -y git vim
-    SHELL
+  SHELL
 
-    config.vm.synced_folder "/Users/wusendong", "/hosthome"
-    config.timezone.value = :host
-      
-    # config.vm.define "k8s-master" do |master|
-    #     master.vm.box = IMAGE_NAME
-    #     master.vm.network "private_network", ip: "192.168.50.10"
-    #     master.vm.hostname = "exp1"
+  config.vm.synced_folder '/Users/wusendong', '/hosthome'
+  config.timezone.value = :host
 
-    #     master.vm.provision "ansible" do |ansible|
-    #         ansible.playbook = "kubernetes-setup/master-playbook.yml"
-    #         ansible.extra_vars = {
-    #             node_ip: "192.168.50.10",
-    #         }
-    #     end
-    # end
+  # config.vm.define "k8s-master" do |master|
+  #     master.vm.box = IMAGE_NAME
+  #     master.vm.network "private_network", ip: "192.168.50.10"
+  #     master.vm.hostname = "exp1"
 
+  #     master.vm.provision "ansible" do |ansible|
+  #         ansible.playbook = "kubernetes-setup/master-playbook.yml"
+  #         ansible.extra_vars = {
+  #             node_ip: "192.168.50.10",
+  #         }
+  #     end
+  # end
 
-
-    (1..N).each do |i|
-        config.vm.define "exp-#{i}" do |node|
-            node.vm.box = IMAGE_NAME
-            node.vm.network "private_network", ip: "192.168.50.#{i + 10}"
-            node.vm.hostname = "exp-#{i}"
-            # node.vm.provision "ansible" do |ansible|
-            #     ansible.playbook = "kubernetes-setup/node-playbook.yml"
-            #     ansible.extra_vars = {
-            #         node_ip: "192.168.50.#{i + 10}",
-            #     }
-            # end
-        end
+  (1..N).each do |i|
+    config.vm.define "exp-#{i}" do |node|
+      node.vm.box = IMAGE_NAME
+      node.vm.network 'private_network', ip: "192.168.50.#{i + 10}"
+      node.vm.hostname = "exp-#{i}"
+      node.vm.provision 'file', source: '../.inputrc', destination: '$HOME/.inputrc'
+      # node.vm.provision "ansible" do |ansible|
+      #     ansible.playbook = "kubernetes-setup/node-playbook.yml"
+      #     ansible.extra_vars = {
+      #         node_ip: "192.168.50.#{i + 10}",
+      #     }
+      # end
     end
+  end
 end
