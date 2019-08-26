@@ -3,3 +3,4 @@ data/
 *.log
 .DS_Store
 node-token
+k8s/join_command
